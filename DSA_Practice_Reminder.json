@@ -1,0 +1,138 @@
+{
+    "name": "DSA Practice Reminder",
+    "nodes": [{
+            "parameters": {
+                "rule": {
+                    "interval": [{
+                        "triggerAtHour": 9
+                    }]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "a715b3f4-1aac-41e7-8635-b39fe69238b5",
+            "name": "Schedule Trigger"
+        },
+        {
+            "parameters": {
+                "assignments": {
+                    "assignments": [{
+                        "id": "19b8850f-0a75-4e12-a1d5-1efbfcab1e39",
+                        "name": "topics",
+                        "value": "=[\"Array\", \"DP\", \"String\", \"Graph\", \"Tree\", \"Binary Search\", \"Two Pointers\", \"Greedy\"]\n",
+                        "type": "string"
+                    }]
+                },
+                "includeOtherFields": true,
+                "options": {}
+            },
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3.4,
+            "position": [
+                220,
+                0
+            ],
+            "id": "6dfdd54a-1e86-4165-b718-58990006ce6b",
+            "name": "Set Topics"
+        },
+        {
+            "parameters": {
+                "jsCode": "const topics = JSON.parse($json[\"topics\"]);\nconst selected = topics[Math.floor(Math.random() * topics.length)];\nreturn [{ json: { selectedTopic: selected } }];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                440,
+                0
+            ],
+            "id": "aeea7de9-8798-4dd6-9a92-7925814f3bfc",
+            "name": "Pick Random Topic"
+        },
+        {
+            "parameters": {
+                "jsCode": "const questions = {\n  \"Array\": [\n    { title: \"Two Sum\", url: \"https://leetcode.com/problems/two-sum/\" },\n    { title: \"Best Time to Buy and Sell Stock\", url: \"https://leetcode.com/problems/best-time-to-buy-and-sell-stock/\" }\n  ],\n  \"DP\": [\n    { title: \"Climbing Stairs\", url: \"https://leetcode.com/problems/climbing-stairs/\" },\n    { title: \"House Robber\", url: \"https://leetcode.com/problems/house-robber/\" }\n  ],\n  \"String\": [\n    { title: \"Valid Anagram\", url: \"https://leetcode.com/problems/valid-anagram/\" },\n    { title: \"Longest Substring Without Repeating Characters\", url: \"https://leetcode.com/problems/longest-substring-without-repeating-characters/\" }\n  ],\n  \"Two Pointers\": [\n    { title: \"Valid Palindrome\", url: \"https://leetcode.com/problems/valid-palindrome/\" },\n    { title: \"Container With Most Water\", url: \"https://leetcode.com/problems/container-with-most-water/\" }\n  ],\n  \"Graph\": [\n    { title: \"Number of Islands\", url: \"https://leetcode.com/problems/number-of-islands/\" },\n    { title: \"Clone Graph\", url: \"https://leetcode.com/problems/clone-graph/\" }\n  ],\n  \"Tree\": [\n    { title: \"Maximum Depth of Binary Tree\", url: \"https://leetcode.com/problems/maximum-depth-of-binary-tree/\" },\n    { title: \"Invert Binary Tree\", url: \"https://leetcode.com/problems/invert-binary-tree/\" }\n  ],\n  \"Binary Search\": [\n    { title: \"Binary Search\", url: \"https://leetcode.com/problems/binary-search/\" },\n    { title: \"Search Insert Position\", url: \"https://leetcode.com/problems/search-insert-position/\" }\n  ],\n  \"Greedy\": [\n    { title: \"Jump Game\", url: \"https://leetcode.com/problems/jump-game/\" },\n    { title: \"Gas Station\", url: \"https://leetcode.com/problems/gas-station/\" }\n  ]\n};\n\nconst topic = $json[\"selectedTopic\"];\nconst list = questions[topic];\n\nif (!list) {\n  throw new Error(`No questions found for topic: ${topic}`);\n}\n\nconst selected = list[Math.floor(Math.random() * list.length)];\n\nreturn [{\n  json: {\n    title: selected.title,\n    url: selected.url,\n    topic: topic\n  }\n}];\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                660,
+                0
+            ],
+            "id": "b7454a35-7c9d-4094-a78d-1d2d5331de15",
+            "name": "Pick Random Question"
+        },
+        {
+            "parameters": {
+                "chatId": "{{ $env.TELEGRAM_CHAT_ID }}",
+                "text": "=📌 Your DSA Question for Today  \n🧠 Topic: {{$json[\"topic\"]}}   \n📖 Title: {{$json[\"title\"]}}   \n🔗 {{$json[\"url\"]}}  \n\nLet’s solve this 💪",
+                "additionalFields": {
+                    "appendAttribution": false
+                }
+            },
+            "type": "n8n-nodes-base.telegram",
+            "typeVersion": 1.2,
+            "position": [
+                880,
+                0
+            ],
+            "id": "cefbbf47-3f35-4e26-8b38-7694681407a3",
+            "name": "Telegram",
+            "webhookId": "c89daadc-2012-4d93-aeef-706aee022562",
+
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Schedule Trigger": {
+            "main": [
+                [{
+                    "node": "Set Topics",
+                    "type": "main",
+                    "index": 0
+                }]
+            ]
+        },
+        "Set Topics": {
+            "main": [
+                [{
+                    "node": "Pick Random Topic",
+                    "type": "main",
+                    "index": 0
+                }]
+            ]
+        },
+        "Pick Random Topic": {
+            "main": [
+                [{
+                    "node": "Pick Random Question",
+                    "type": "main",
+                    "index": 0
+                }]
+            ]
+        },
+        "Pick Random Question": {
+            "main": [
+                [{
+                    "node": "Telegram",
+                    "type": "main",
+                    "index": 0
+                }]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "c382611f-9b2e-4896-9770-9dda7048b2ca",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "3669e83dea08b0279e99365bc0d1f316246207b68775c086e8b81cac801e18aa"
+    },
+    "id": "Gz3EsZS6jW6HyPTG",
+    "tags": []
+}
